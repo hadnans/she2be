@@ -1,2 +1,76 @@
-skills/
-node_modules/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# production
+/dist
+
+# misc
+.DS_Store
+*.pem
+Thumbs.db
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+.env.production
+.env.development
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# database (SQLite local dev)
+/db/*.db
+/db/*.db-journal
+
+# logs
+*.log
+dev.log
+server.log
+
+# agent-browser
+.agent-browser/
+
+# z-ai scripts (sandbox only)
+.zscripts/
+.zscripts
+.tool-results
+tool-results/
+
+# uploaded files (user content)
+/upload/*
+!/upload/.gitkeep
+
+# downloads (screenshots, exports)
+/download/*
+!/download/.gitkeep
+
+# skills (sandbox-only artifacts)
+/skills/

@@ -1,0 +1,301 @@
+// =====================================================================
+// She2Be — Grocery E-Commerce Platform
+// Prisma schema (SQLite for dev; the same model shapes work on PostgreSQL
+// by changing the datasource provider — see /docs/DB_MIGRATION.md).
+//
+// The schema follows the master architecture doc:
+//   - CUID string primary keys everywhere
+//   - createdAt / updatedAt on every model
+//   - soft-delete (deletedAt) on Products, Users, Orders
+//   - Money stored as integer minor units (pricePiasters) to avoid floats
+// =====================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------
+// Identity & Access
+// ---------------------------------------------------------------------
+
+model User {
+  id              String        @id @default(cuid())
+  email           String        @unique
+  passwordHash    String
+  name            String?
+  role            String        @default("customer") // customer | staff | admin
+  phone           String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  cart            Cart?
+  orders          Order[]
+  reviews         Review[]
+  addresses       Address[]
+
+  @@index([email])
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String?
+  line1     String
+  line2     String?
+  city      String
+  area      String?
+  phone     String?
+  notes     String?
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------
+// Catalog: Categories, Brands, Products, Variants
+// ---------------------------------------------------------------------
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  icon        String?
+  imageUrl    String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  products    Product[]
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([parentId])
+  @@index([slug])
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  logoUrl   String?
+  country   String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  description     String?
+  longDescription String?
+
+  // Money in integer minor units (piasters/cents).
+  // SQLite has no native Decimal; using Int keeps math exact.
+  pricePiasters   Int
+  compareAtPricePiasters Int?  // original price for "on sale" display
+  costPiasters    Int?          // for admin reporting
+
+  // Unit display ("500g", "1L", "12 pack")
+  unit            String?
+  sku             String?       @unique
+  barcode         String?
+
+  // Stock + flags
+  stock           Int           @default(0)
+  lowStockThreshold Int         @default(5)
+  isActive        Boolean       @default(true)
+  isFeatured      Boolean       @default(false)
+  isOrganic       Boolean       @default(false)
+  isVegan         Boolean       @default(false)
+
+  // Relations
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id])
+  brandId         String?
+  brand           Brand?        @relation(fields: [brandId], references: [id])
+
+  imageUrl        String?       // primary image (we keep things simple: one image per product in v1)
+  galleryUrls     String        @default("[]") // JSON-encoded string array
+
+  // Average rating cached for fast sorting/display
+  ratingAvg       Float         @default(0)
+  ratingCount     Int           @default(0)
+
+  // Soft delete
+  deletedAt       DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  cartItems       CartItem[]
+  orderItems      OrderItem[]
+  reviews         Review[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isFeatured])
+  @@index([isActive])
+}
+
+// ---------------------------------------------------------------------
+// Cart
+// ---------------------------------------------------------------------
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+// ---------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNumber     String      @unique
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+
+  // Snapshot of order state
+  status          String      @default("pending") // pending | paid | preparing | out_for_delivery | delivered | cancelled | refunded
+  paymentStatus   String      @default("unpaid")  // unpaid | paid | refunded
+
+  // Money snapshot (integer minor units)
+  subtotalPiasters  Int
+  deliveryFeePiasters Int
+  discountPiasters Int
+  totalPiasters    Int
+
+  // Delivery details (snapshot, not a relation)
+  deliveryName     String
+  deliveryPhone    String
+  deliveryAddress  String
+  deliveryCity     String
+  deliveryArea     String?
+  deliveryNotes    String?
+
+  // Optional coupon used
+  couponCode       String?
+
+  // Tracking
+  placedAt         DateTime    @default(now())
+  paidAt           DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+
+  items            OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  // Snapshot at time of purchase
+  productName      String
+  productImageUrl  String?
+  unit             String?
+  pricePiasters    Int
+  quantity         Int
+  lineTotalPiasters Int
+
+  @@index([orderId])
+}
+
+// ---------------------------------------------------------------------
+// Reviews
+// ---------------------------------------------------------------------
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int      // 1..5
+  title     String?
+  body      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+  @@index([productId])
+}
+
+// ---------------------------------------------------------------------
+// Coupons
+// ---------------------------------------------------------------------
+
+model Coupon {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  description     String?
+  // 'percent' | 'fixed'
+  discountType    String
+  // For percent: 1..100. For fixed: piasters off.
+  discountValue   Int
+  minOrderPiasters Int?
+  maxDiscountPiasters Int?
+  usageLimit      Int?
+  usedCount       Int      @default(0)
+  startsAt        DateTime?
+  endsAt          DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------
+// Audit log (admin actions)
+// ---------------------------------------------------------------------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorEmail String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  String   @default("{}") // JSON
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
