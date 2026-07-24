@@ -39,6 +39,7 @@ model User {
   orders          Order[]
   reviews         Review[]
   addresses       Address[]
+  wishlist        Wishlist?
 
   @@index([email])
 }
@@ -144,6 +145,7 @@ model Product {
   cartItems       CartItem[]
   orderItems      OrderItem[]
   reviews         Review[]
+  wishlistItems   WishlistItem[]
 
   @@index([categoryId])
   @@index([slug])
@@ -258,6 +260,31 @@ model Review {
 
   @@unique([userId, productId])
   @@index([productId])
+}
+
+// ---------------------------------------------------------------------
+// Wishlist
+// ---------------------------------------------------------------------
+
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id          String    @id @default(cuid())
+  wishlistId  String
+  wishlist    Wishlist  @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([wishlistId, productId])
+  @@index([wishlistId])
 }
 
 // ---------------------------------------------------------------------

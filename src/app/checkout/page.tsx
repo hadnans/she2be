@@ -53,8 +53,13 @@ export default function CheckoutPage() {
         deliveryName: user.name || '',
         deliveryPhone: user.phone || '',
       }))
+      // Load fresh cart from server (the Header's effect may have already
+      // run, but we want to make sure we have the latest items).
+      apiClient.getCart().then((cart) => {
+        setServerItems(cart.items as any)
+      }).catch(() => {})
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading, router, setServerItems])
 
   if (authLoading || !user) {
     return (

@@ -61,6 +61,7 @@ async function api<T>(
 ): Promise<T> {
   const res = await fetch(path, {
     ...init,
+    credentials: 'same-origin',  // ensure cookies are sent/received
     headers: {
       'Content-Type': 'application/json',
       ...(init?.headers || {}),
@@ -148,4 +149,26 @@ export const apiClient = {
   // Admin category create
   createCategory: (data: any) =>
     api<Category>(`/api/categories`, { method: 'POST', body: JSON.stringify(data) }),
+
+  // Wishlist
+  getWishlist: () => api<{ id: string; items: any[] }>(`/api/wishlist`),
+  addToWishlist: (productId: string) =>
+    api<{ ok: boolean }>(`/api/wishlist`, { method: 'POST', body: JSON.stringify({ productId }) }),
+  removeFromWishlist: (itemId: string) =>
+    api<{ ok: boolean }>(`/api/wishlist/${itemId}`, { method: 'DELETE' }),
+
+  // Reviews
+  listReviews: (productId: string) =>
+    api<{ items: any[] }>(`/api/reviews?productId=${productId}`),
+  createReview: (productId: string, rating: number, title?: string, body?: string) =>
+    api<any>(`/api/reviews`, {
+      method: 'POST',
+      body: JSON.stringify({ productId, rating, title, body }),
+    }),
+
+  // Admin orders
+  adminListOrders: (status?: string) =>
+    api<{ items: any[] }>(`/api/admin/orders${status ? `?status=${status}` : ''}`),
+  adminUpdateOrder: (id: string, data: any) =>
+    api<any>(`/api/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 }

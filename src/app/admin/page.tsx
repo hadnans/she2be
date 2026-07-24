@@ -137,12 +137,18 @@ export default function AdminPage() {
           </div>
 
           {/* Quick actions */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <QuickAction
               href="/admin/products"
               icon={Package}
               title="Products"
               desc="Add, edit, and manage your catalog"
+            />
+            <QuickAction
+              href="/admin/orders"
+              icon={ShoppingCart}
+              title="Orders"
+              desc="View and update customer orders"
             />
             <QuickAction
               href="/admin/categories"
@@ -163,8 +169,8 @@ export default function AdminPage() {
           <Card className="p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold">Recent orders</h2>
-              <Button variant="ghost" size="sm" disabled>
-                View all (coming soon)
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/admin/orders">View all</Link>
               </Button>
             </div>
             {statsLoading ? (
@@ -206,6 +212,7 @@ function AdminSidebar({
   const items = [
     { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', active: true },
     { href: '/admin/products', icon: Package, label: 'Products' },
+    { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
     { href: '/admin/categories', icon: FolderTree, label: 'Categories' },
     { href: '/admin/new-product', icon: Plus, label: 'Add product' },
   ]
@@ -239,10 +246,6 @@ function AdminSidebar({
           </Button>
         ))}
         <div className="pt-2 mt-2 border-t">
-          <Button variant="ghost" className="w-full justify-start" disabled>
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Orders
-          </Button>
           <Button variant="ghost" className="w-full justify-start" disabled>
             <Users className="mr-2 h-4 w-4" />
             Customers

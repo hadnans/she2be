@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { ShoppingCart, User, LogOut, LayoutDashboard, Search, Menu, Leaf } from 'lucide-react'
+import { ShoppingCart, User, LogOut, LayoutDashboard, Search, Menu, Leaf, Heart } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,6 +119,15 @@ export function Header({ onSearch, initialQuery = '' }: Props) {
                 </span>
               )}
             </Button>
+
+            {/* Wishlist (only when signed in) */}
+            {user && (
+              <Button asChild variant="ghost" size="icon" aria-label="Open wishlist">
+                <Link href="/wishlist">
+                  <Heart className="h-5 w-5" />
+                </Link>
+              </Button>
+            )}
 
             {/* User menu */}
             {user ? (

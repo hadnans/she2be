@@ -16,6 +16,8 @@ import { useCartStore } from '@/store/cart'
 import { useAuth } from './auth-provider'
 import { formatEgp } from '@/lib/money'
 import { Product } from '@/lib/api'
+import { WishlistButton } from './wishlist-button'
+import { ReviewsSection } from './reviews-section'
 
 interface Props {
   product: Product | null
@@ -234,7 +236,14 @@ export function ProductDetailModal({ product, open, onOpenChange }: Props) {
                 SKU: {product.sku}
               </div>
             )}
+
+            <WishlistButton productId={product.id} variant="full" />
           </div>
+        </div>
+
+        {/* Reviews section — spans both columns */}
+        <div className="md:col-span-2 p-6 border-t bg-muted/20">
+          <ReviewsSection productId={product.id} />
         </div>
       </DialogContent>
     </Dialog>

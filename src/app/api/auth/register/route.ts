@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { setSessionCookie } from '@/lib/session'
+import { setSessionCookieOnResponse } from '@/lib/session'
 import { hashPassword } from '@/lib/password'
 
 export async function POST(req: NextRequest) {
@@ -30,16 +30,16 @@ export async function POST(req: NextRequest) {
     },
   })
 
-  await setSessionCookie({
-    userId: user.id,
-    role: user.role,
-    email: user.email,
-  })
-
-  return NextResponse.json({
+  const res = NextResponse.json({
     id: user.id,
     email: user.email,
     name: user.name,
     role: user.role,
   }, { status: 201 })
+  setSessionCookieOnResponse(res, {
+    userId: user.id,
+    role: user.role,
+    email: user.email,
+  })
+  return res
 }

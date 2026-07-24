@@ -10,6 +10,7 @@
  * proper JWT library (see /docs/AUTH_UPGRADE.md placeholder).
  */
 import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 import { createHmac } from 'crypto'
 import { db } from './db'
 
@@ -43,6 +44,36 @@ function verify(token: string): SessionPayload | null {
   }
 }
 
+/**
+ * Set the session cookie on a NextResponse object using NextResponse's
+ * cookies API. This is the reliable way to set cookies in Route Handlers.
+ */
+export function setSessionCookieOnResponse(
+  res: NextResponse,
+  payload: SessionPayload
+) {
+  const token = sign(payload)
+  res.cookies.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+  })
+}
+
+export function clearSessionCookieOnResponse(res: NextResponse) {
+  res.cookies.set(COOKIE_NAME, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 0,
+  })
+}
+
+// Keep the old async versions for backwards-compat (used by Server Actions
+// if any are added later).
 export async function setSessionCookie(payload: SessionPayload) {
   const token = sign(payload)
   const store = await cookies()
@@ -51,7 +82,7 @@ export async function setSessionCookie(payload: SessionPayload) {
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     path: '/',
-    maxAge: 60 * 60 * 24 * 30, // 30 days
+    maxAge: 60 * 60 * 24 * 30,
   })
 }
 
