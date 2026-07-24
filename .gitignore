@@ -74,3 +74,6 @@ tool-results/
 
 # skills (sandbox-only artifacts)
 /skills/
+
+# Bun lockfile (regenerate with: bun install)
+bun.lock
