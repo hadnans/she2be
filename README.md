@@ -9,17 +9,22 @@ A modern, full-stack grocery e-commerce platform built on the architecture defin
 - **Category browser** (10 seeded categories with product counts)
 - **Featured products**, **new arrivals**, **organic selection** rows
 - **Live search** (debounced, hits the API)
-- **Product detail modal** with quantity picker, badges, stock status
+- **Product detail modal** with quantity picker, badges, stock status, wishlist button, and reviews section
 - **Cart drawer** with quantity controls (works for guests + logged-in users)
+- **Wishlist** (`/wishlist`) — save items for later, add to cart from wishlist
+- **Product reviews** — 1-5 star rating + title + body, displayed on product modal
 - **Promo banner** with coupon code (`WELCOME10`, `SAVE25`)
 - **Newsletter signup** (front-end only — wire to your email provider)
 - **Auth pages** (`/login`, `/register`) with demo credentials shown
 - **Checkout** (`/checkout`) with delivery form, coupon validation, order summary
 - **Order history** (`/orders`) with status badges
+- **Error boundary** — friendly fallback instead of white-screen on render errors
+- **Image fallback** — graceful placeholder when product images fail to load
 
 ### Admin Console (`/admin/*`)
 - **Dashboard** — revenue, orders, products, low-stock stats + recent orders
 - **Products** (`/admin/products`) — searchable table, toggle active/featured, edit, soft-delete
+- **Orders** (`/admin/orders`) — filterable order list, detail dialog with status/payment update
 - **Add / edit product** (`/admin/new-product`) — full form: pricing (EGP), inventory, flags, image URL
 - **Categories** (`/admin/categories`) — create new categories with emoji icons
 
@@ -33,8 +38,11 @@ A modern, full-stack grocery e-commerce platform built on the architecture defin
 - `GET /api/orders/[id]`
 - `POST /api/coupons/validate`
 - `POST /api/auth/login`, `POST /api/auth/register`, `GET /api/auth/me`, `POST /api/auth/logout`
+- `GET/POST /api/wishlist`, `DELETE /api/wishlist/[id]` — saved items
+- `GET/POST /api/reviews` — product reviews with rating aggregation
 - `GET /api/admin/stats` — admin dashboard summary
 - `GET /api/admin/products`, `PATCH/DELETE /api/admin/products/[id]`
+- `GET /api/admin/orders`, `PATCH /api/admin/orders/[id]` — order status management
 
 All admin/product-mutation endpoints enforce authentication + admin role via a signed HMAC session cookie (see `src/lib/session.ts`). Audit log entries are written for every admin mutation.
 
