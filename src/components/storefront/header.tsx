@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from './auth-provider'
 import {
@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useCartStore } from '@/store/cart'
 import { CartDrawer } from './cart-drawer'
+import { SearchPalette } from './search/search-palette'
 import { toast } from 'sonner'
 
 interface Props {
@@ -36,7 +37,20 @@ export function Header({ onSearch, initialQuery = '' }: Props) {
   const [q, setQ] = useState(initialQuery)
   const [cartOpen, setCartOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const itemCount = useCartStore((s) => s.itemCount())
+
+  // Cmd+K / Ctrl+K to open the global search palette
+  const handleKey = useCallback((e: KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      setSearchOpen(true)
+    }
+  }, [])
+  useEffect(() => {
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [handleKey])
 
   // Sync cart count from server when user logs in
   useEffect(() => {
@@ -79,19 +93,17 @@ export function Header({ onSearch, initialQuery = '' }: Props) {
             </div>
           </Link>
 
-          {/* Search (desktop) */}
-          <form onSubmit={submitSearch} className="hidden md:flex flex-1 max-w-xl">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search for products, categories, brands..."
-                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                aria-label="Search products"
-              />
-            </div>
-          </form>
+          {/* Search (desktop) — clicking opens the global palette */}
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="hidden md:flex items-center gap-2 flex-1 max-w-xl h-9 px-3 rounded-md bg-muted/50 hover:bg-muted text-muted-foreground text-sm transition-colors"
+            aria-label="Open search"
+          >
+            <Search className="h-4 w-4" />
+            <span className="flex-1 text-left">Search products, categories, brands...</span>
+            <kbd className="text-[10px] px-1.5 py-0.5 border rounded bg-background">⌘K</kbd>
+          </button>
 
           {/* Right actions */}
           <div className="flex items-center gap-1 md:gap-2 ml-auto">
@@ -228,22 +240,20 @@ export function Header({ onSearch, initialQuery = '' }: Props) {
           </div>
         </div>
 
-        {/* Search (mobile) */}
-        <form onSubmit={submitSearch} className="md:hidden pb-3">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search products..."
-              className="pl-10 bg-muted/50 border-0"
-              aria-label="Search products"
-            />
-          </div>
-        </form>
+        {/* Search (mobile) — opens palette */}
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          className="md:hidden w-full flex items-center gap-2 h-9 px-3 rounded-md bg-muted/50 hover:bg-muted text-muted-foreground text-sm pb-3 mb-1"
+          aria-label="Open search"
+        >
+          <Search className="h-4 w-4" />
+          <span>Search products...</span>
+        </button>
       </div>
 
       <CartDrawer open={cartOpen} onOpenChange={setCartOpen} />
+      <SearchPalette open={searchOpen} onOpenChange={setSearchOpen} />
     </header>
   )
 }
