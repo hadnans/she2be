@@ -48,6 +48,7 @@ export default function CheckoutPage() {
     if (!authLoading && !user) {
       router.push('/login?redirect=/checkout')
     } else if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm((f) => ({
         ...f,
         deliveryName: user.name || '',
@@ -113,7 +114,8 @@ export default function CheckoutPage() {
       const cart = await apiClient.getCart()
       setServerItems(cart.items as any)
       toast.success(`Order placed! #${order.orderNumber}`)
-      router.push('/orders')
+      // Redirect to payment page (handles all payment methods including COD)
+      router.push(`/payment/${order.id}`)
     } catch (e: any) {
       toast.error(e.message || 'Could not place order')
     } finally {

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Package } from 'lucide-react'
+import { ArrowLeft, Package, MapPin } from 'lucide-react'
 import { useAuth } from '@/components/storefront/auth-provider'
 import { apiClient } from '@/lib/api'
 import { formatEgp } from '@/lib/money'
@@ -149,6 +149,17 @@ export default function OrdersPage() {
                     </div>
                   ))}
                 </div>
+
+                {order.status !== 'cancelled' && (
+                  <div className="mt-3 pt-3 border-t flex justify-end">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/order-tracking/${order.id}`}>
+                        <MapPin className="h-3.5 w-3.5 mr-1" />
+                        Track order
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </Card>
             ))}
           </div>

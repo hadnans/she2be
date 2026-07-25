@@ -106,6 +106,7 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (user?.role === 'admin') load()
   }, [user, filter])
 

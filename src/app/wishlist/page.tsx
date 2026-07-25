@@ -42,6 +42,7 @@ export default function WishlistPage() {
           .catch(() => toast.error('Could not load wishlist'))
           .finally(() => setLoadingItems(false))
       } else {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoadingItems(false)
       }
     }
