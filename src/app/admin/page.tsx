@@ -15,6 +15,7 @@ import {
   Leaf,
   Plus,
   Menu as MenuIcon,
+  MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -151,6 +152,18 @@ export default function AdminPage() {
               desc="View and update customer orders"
             />
             <QuickAction
+              href="/admin/analytics"
+              icon={BarChart3}
+              title="Analytics"
+              desc="Revenue, top products, payment breakdown"
+            />
+            <QuickAction
+              href="/admin/warehouses"
+              icon={MapPin}
+              title="Warehouses"
+              desc="Manage fulfillment locations on the map"
+            />
+            <QuickAction
               href="/admin/categories"
               icon={FolderTree}
               title="Categories"
@@ -213,6 +226,8 @@ function AdminSidebar({
     { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', active: true },
     { href: '/admin/products', icon: Package, label: 'Products' },
     { href: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
+    { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+    { href: '/admin/warehouses', icon: MapPin, label: 'Warehouses' },
     { href: '/admin/categories', icon: FolderTree, label: 'Categories' },
     { href: '/admin/new-product', icon: Plus, label: 'Add product' },
   ]
@@ -249,10 +264,6 @@ function AdminSidebar({
           <Button variant="ghost" className="w-full justify-start" disabled>
             <Users className="mr-2 h-4 w-4" />
             Customers
-          </Button>
-          <Button variant="ghost" className="w-full justify-start" disabled>
-            <BarChart3 className="mr-2 h-4 w-4" />
-            Reports
           </Button>
           <Button variant="ghost" className="w-full justify-start" disabled>
             <Settings className="mr-2 h-4 w-4" />

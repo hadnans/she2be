@@ -14,7 +14,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const body = await req.json()
   if (!body.name || !body.slug) {
     return NextResponse.json({ error: 'name and slug required' }, { status: 400 })

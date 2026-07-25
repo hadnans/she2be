@@ -30,7 +30,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const { slug } = await params
   const body = await req.json()
 
@@ -87,7 +91,11 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const { slug } = await params
   const existing = await db.product.findUnique({ where: { slug } })
   if (!existing) {

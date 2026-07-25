@@ -7,7 +7,11 @@ import { requireAdmin } from '@/lib/session'
  * Admin product list — includes inactive + soft-deleted (for management).
  */
 export async function GET(req: NextRequest) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const { searchParams } = new URL(req.url)
   const q = searchParams.get('q')?.trim()
   const includeDeleted = searchParams.get('includeDeleted') === 'true'

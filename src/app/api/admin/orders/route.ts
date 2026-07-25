@@ -7,7 +7,11 @@ import { requireAdmin, getCurrentUser } from '@/lib/session'
  * List all orders (admin only). Supports ?status= filter.
  */
 export async function GET(req: NextRequest) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const { searchParams } = new URL(req.url)
   const status = searchParams.get('status')
 

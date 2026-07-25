@@ -7,7 +7,11 @@ import { requireAdmin } from '@/lib/session'
  * Dashboard summary numbers.
  */
 export async function GET() {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
 
   const [
     totalProducts,

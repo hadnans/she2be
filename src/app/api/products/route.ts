@@ -65,7 +65,11 @@ export async function GET(req: NextRequest) {
  * POST /api/products  (admin only)
  */
 export async function POST(req: NextRequest) {
-  await requireAdmin()
+  try {
+    await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   const body = await req.json()
 
   if (!body.name || !body.slug || !body.categoryId || body.pricePiasters == null) {
