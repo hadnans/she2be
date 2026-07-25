@@ -171,4 +171,27 @@ export const apiClient = {
     api<{ items: any[] }>(`/api/admin/orders${status ? `?status=${status}` : ''}`),
   adminUpdateOrder: (id: string, data: any) =>
     api<any>(`/api/admin/orders/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // Payments
+  listPaymentProviders: () =>
+    api<{ providers: { id: string; displayName: string }[] }>(`/api/payments/providers`),
+  createPayment: (orderId: string, provider: string) =>
+    api<{ provider: string; intentId: string; redirectUrl?: string; clientSecret?: string }>(
+      `/api/payments`,
+      { method: 'POST', body: JSON.stringify({ orderId, provider }) }
+    ),
+  verifyPayment: (orderId: string, provider: string, params: Record<string, string>) =>
+    api<{ ok: boolean; transactionId?: string; error?: string }>(
+      `/api/payments/verify`,
+      { method: 'POST', body: JSON.stringify({ orderId, provider, ...params }) }
+    ),
+
+  // Maps
+  geocode: (q: string) =>
+    api<{ results: any[] }>(`/api/maps/geocode?q=${encodeURIComponent(q)}`),
+  calcDistance: (from: { lat: number; lng: number }, to: { lat: number; lng: number }) =>
+    api<{ distanceMeters: number; durationMinutes: number }>(
+      `/api/maps/distance`,
+      { method: 'POST', body: JSON.stringify({ from, to }) }
+    ),
 }

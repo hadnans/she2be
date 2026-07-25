@@ -119,17 +119,57 @@ export async function getCurrentUser() {
 export async function requireUser() {
   const user = await getCurrentUser()
   if (!user) {
-    throw new Response('Unauthorized', { status: 401 })
+    const err = new Error('Unauthorized') as any
+    err.status = 401
+    throw err
   }
   return user
 }
 
 export async function requireAdmin() {
-  const user = await requireUser()
+  const user = await getCurrentUser()
+  if (!user) {
+    const err = new Error('Unauthorized') as any
+    err.status = 401
+    throw err
+  }
   if (user.role !== 'admin') {
-    throw new Response('Forbidden', { status: 403 })
+    const err = new Error('Forbidden') as any
+    err.status = 403
+    throw err
   }
   return user
+}
+
+/**
+ * Wrap a route handler so auth errors are returned as proper JSON
+ * responses instead of crashing the route.
+ */
+import { NextResponse } from 'next/server'
+
+export function withAuth<T extends any[]>(
+  handler: (...args: T) => Promise<Response>,
+  requiredRole: 'user' | 'admin' = 'user'
+) {
+  return async (...args: T): Promise<Response> => {
+    try {
+      if (requiredRole === 'admin') {
+        await requireAdmin()
+      } else {
+        await requireUser()
+      }
+      return await handler(...args)
+    } catch (e: any) {
+      if (e?.message === 'Unauthorized' || e?.status === 401) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      if (e?.message === 'Forbidden' || e?.status === 403) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+      console.error('Route error:', e)
+      return NextResponse.json({ error: e?.message || 'Internal error' }, { status: 500 })
+    }
+  }
 }
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME
