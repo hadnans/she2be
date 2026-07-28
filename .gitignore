@@ -77,3 +77,7 @@ tool-results/
 
 # Bun lockfile (regenerate with: bun install)
 bun.lock
+
+# SSH deploy key (local only — never commit private keys)
+scripts/deploy_key
+scripts/deploy_key.pub

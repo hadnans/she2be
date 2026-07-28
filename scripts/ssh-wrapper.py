@@ -16,6 +16,8 @@ import socket
 import paramiko
 
 KEY_PATH = os.path.expanduser("~/.ssh/id_ed25519")
+# Fallback: load from project's scripts/ folder (persists across sessions)
+KEY_PATH_FALLBACK = "/home/z/my-project/scripts/deploy_key"
 KNOWN_HOSTS = {
     "github.com": [
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UO3qOAAAAQQDb20=  github.com",
@@ -66,21 +68,30 @@ def main():
     # AutoAddPolicy since this is a controlled environment with a fixed key).
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    # Try to load the ed25519 key
+    # Try to load the ed25519 key — check both ~/.ssh/ and project scripts/ folder
     pkey = None
-    if os.path.exists(KEY_PATH):
+    key_paths = [KEY_PATH, KEY_PATH_FALLBACK]
+    for kp in key_paths:
+        if not os.path.exists(kp):
+            continue
         try:
-            pkey = paramiko.Ed25519Key.from_private_key_file(KEY_PATH)
+            pkey = paramiko.Ed25519Key.from_private_key_file(kp)
+            break
         except paramiko.SSHException:
             # Try other key types
             for cls in (paramiko.RSAKey, paramiko.ECDSAKey):
                 try:
-                    pkey = cls.from_private_key_file(KEY_PATH)
+                    pkey = cls.from_private_key_file(kp)
                     break
                 except Exception:
                     continue
+        if pkey:
+            break
 
-    remote_cmd = " ".join(shlex.quote(c) for c in command)
+    # Git passes the command already shell-quoted as a single argv element.
+    # Don't re-quote — just join with spaces so the remote shell sees what
+    # git intended.
+    remote_cmd = " ".join(command)
 
     try:
         client.connect(
